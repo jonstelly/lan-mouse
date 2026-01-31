@@ -441,6 +441,36 @@ fn to_capture_pos(pos: lan_mouse_ipc::Position) -> input_capture::Position {
     }
 }
 
+fn to_proto_pos(pos: input_capture::Position) -> lan_mouse_proto::Position {
+    match pos {
+        input_capture::Position::Left => lan_mouse_proto::Position::Left,
+        input_capture::Position::Right => lan_mouse_proto::Position::Right,
+        input_capture::Position::Top => lan_mouse_proto::Position::Top,
+        input_capture::Position::Bottom => lan_mouse_proto::Position::Bottom,
+    }
+}
+
+struct DropGuard<T> {
+    tx: Sender<T>,
+    on_drop: Option<T>,
+}
+
+impl<T> DropGuard<T> {
+    fn new(tx: Sender<T>, on_new: T, on_drop: T) -> Self {
+        tx.send(on_new).expect("channel closed");
+        let on_drop = Some(on_drop);
+        Self { tx, on_drop }
+    }
+}
+
+impl<T> Drop for DropGuard<T> {
+    fn drop(&mut self) {
+        self.tx
+            .send(self.on_drop.take().expect("item"))
+            .expect("channel closed");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -476,35 +506,5 @@ mod tests {
             em.consume(event, 0).await.expect("consume failed");
         }
         em.destroy(0).await;
-    }
-}
-
-fn to_proto_pos(pos: input_capture::Position) -> lan_mouse_proto::Position {
-    match pos {
-        input_capture::Position::Left => lan_mouse_proto::Position::Left,
-        input_capture::Position::Right => lan_mouse_proto::Position::Right,
-        input_capture::Position::Top => lan_mouse_proto::Position::Top,
-        input_capture::Position::Bottom => lan_mouse_proto::Position::Bottom,
-    }
-}
-
-struct DropGuard<T> {
-    tx: Sender<T>,
-    on_drop: Option<T>,
-}
-
-impl<T> DropGuard<T> {
-    fn new(tx: Sender<T>, on_new: T, on_drop: T) -> Self {
-        tx.send(on_new).expect("channel closed");
-        let on_drop = Some(on_drop);
-        Self { tx, on_drop }
-    }
-}
-
-impl<T> Drop for DropGuard<T> {
-    fn drop(&mut self) {
-        self.tx
-            .send(self.on_drop.take().expect("item"))
-            .expect("channel closed");
     }
 }
