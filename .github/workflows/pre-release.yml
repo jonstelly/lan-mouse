@@ -22,11 +22,41 @@ jobs:
         sudo apt-get install libadwaita-1-dev libgtk-4-dev
     - name: Release Build
       run: cargo build --release
+    - name: Package artifact
+      if: always()
+      run: |
+        cp target/release/lan-mouse lan-mouse-linux-amd64
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: lan-mouse-linux
-        path: target/release/lan-mouse
+        name: lan-mouse-linux-intel
+        path: lan-mouse-linux-intel
+
+  linux-aarch64-release-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+        sudo apt-get install -y libx11-dev libxtst-dev
+        sudo apt-get install -y libadwaita-1-dev libgtk-4-dev
+    - name: Install rust target
+      run: |
+        rustup target add aarch64-unknown-linux-gnu
+    - name: Release Build (aarch64)
+      run: |
+        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
+        cargo build --release --target aarch64-unknown-linux-gnu
+    - name: Package aarch64 artifact
+      run: |
+        cp target/aarch64-unknown-linux-gnu/release/lan-mouse lan-mouse-linux-aarch64
+    - name: Upload aarch64 build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lan-mouse-linux-aarch64
+        path: lan-mouse-linux-aarch64
 
   windows-release-build:
     runs-on: windows-latest
@@ -138,7 +168,7 @@ jobs:
 
   pre-release:
     name: "Pre Release"
-    needs: [windows-release-build, linux-release-build, macos-release-build, macos-aarch64-release-build]
+    needs: [windows-release-build, linux-release-build, linux-aarch64-release-build, macos-release-build, macos-aarch64-release-build]
     runs-on: "ubuntu-latest"
     steps:
     - name: Download build artifacts
@@ -151,7 +181,8 @@ jobs:
         prerelease: true
         title: "Development Build"
         files: |
-          lan-mouse-linux/lan-mouse
+          lan-mouse-linux-intel/lan-mouse-linux-intel
+          lan-mouse-linux-aarch64/lan-mouse-linux-aarch64
           lan-mouse-macos-intel/lan-mouse-macos-intel.zip
           lan-mouse-macos-aarch64/lan-mouse-macos-aarch64.zip
           lan-mouse-windows/lan-mouse-windows.zip
