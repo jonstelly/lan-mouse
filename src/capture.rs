@@ -8,8 +8,8 @@ use futures::StreamExt;
 use input_capture::{
     CaptureError, CaptureEvent, CaptureHandle, InputCapture, InputCaptureError, Position,
 };
-use input_event::scancode;
 use input_emulation::InputEmulation;
+use input_event::scancode;
 use input_event::{Event, KeyboardEvent};
 use lan_mouse_proto::ProtoEvent;
 use local_channel::mpsc::{Receiver, Sender, channel};
@@ -373,13 +373,22 @@ impl CaptureTask {
         // If there is an active outgoing client, send key-up events and a modifiers-clear
         if let Some(handle) = active_client {
             for &key in &pressed_keys {
-                let event = Event::Keyboard(KeyboardEvent::Key { time: 0, key: key as u32, state: 0 });
+                let event = Event::Keyboard(KeyboardEvent::Key {
+                    time: 0,
+                    key: key as u32,
+                    state: 0,
+                });
                 if let Err(e) = self.conn.send(ProtoEvent::Input(event), handle).await {
                     log::warn!("failed to send key-up to client {handle}: {e}");
                 }
             }
             // send explicit modifiers clear
-            let mods = Event::Keyboard(KeyboardEvent::Modifiers { depressed: 0, latched: 0, locked: 0, group: 0 });
+            let mods = Event::Keyboard(KeyboardEvent::Modifiers {
+                depressed: 0,
+                latched: 0,
+                locked: 0,
+                group: 0,
+            });
             if let Err(e) = self.conn.send(ProtoEvent::Input(mods), handle).await {
                 log::warn!("failed to send modifiers clear to client {handle}: {e}");
             }
@@ -469,7 +478,6 @@ mod tests {
         em.destroy(0).await;
     }
 }
-
 
 fn to_proto_pos(pos: input_capture::Position) -> lan_mouse_proto::Position {
     match pos {
