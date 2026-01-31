@@ -130,6 +130,10 @@ pub struct InputCapture {
 }
 
 impl InputCapture {
+        /// Returns an iterator over the currently pressed keys.
+        pub fn currently_pressed_keys(&self) -> impl Iterator<Item = scancode::Linux> + '_ {
+            self.pressed_keys.iter().copied()
+        }
     /// create a new client with the given id
     pub async fn create(&mut self, id: CaptureHandle, pos: Position) -> Result<(), CaptureError> {
         assert!(!self.id_map.contains_key(&id));

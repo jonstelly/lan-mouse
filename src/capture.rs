@@ -9,6 +9,8 @@ use input_capture::{
     CaptureError, CaptureEvent, CaptureHandle, InputCapture, InputCaptureError, Position,
 };
 use input_event::scancode;
+use input_emulation::InputEmulation;
+use input_event::{Event, KeyboardEvent};
 use lan_mouse_proto::ProtoEvent;
 use local_channel::mpsc::{Receiver, Sender, channel};
 use tokio::task::{JoinHandle, spawn_local};
@@ -362,7 +364,50 @@ impl CaptureTask {
     }
 
     async fn release_capture(&mut self, capture: &mut InputCapture) -> Result<(), CaptureError> {
-        self.active_client.take();
+        // take current active client so we can send explicit key-up events
+        let active_client = self.active_client.take();
+
+        // Clone pressed keys now (capture.release() will clear them)
+        let pressed_keys: Vec<_> = capture.currently_pressed_keys().collect();
+
+        // If there is an active outgoing client, send key-up events and a modifiers-clear
+        if let Some(handle) = active_client {
+            for &key in &pressed_keys {
+                let event = Event::Keyboard(KeyboardEvent::Key { time: 0, key: key as u32, state: 0 });
+                if let Err(e) = self.conn.send(ProtoEvent::Input(event), handle).await {
+                    log::warn!("failed to send key-up to client {handle}: {e}");
+                }
+            }
+            // send explicit modifiers clear
+            let mods = Event::Keyboard(KeyboardEvent::Modifiers { depressed: 0, latched: 0, locked: 0, group: 0 });
+            if let Err(e) = self.conn.send(ProtoEvent::Input(mods), handle).await {
+                log::warn!("failed to send modifiers clear to client {handle}: {e}");
+            }
+        }
+
+        // Attempt to emulate key-up locally so the compositor's keyboard state
+        // (modifiers like Meta/Ctrl/Alt/Shift) is cleared. Run only if there are pressed keys.
+        if !pressed_keys.is_empty() {
+            match InputEmulation::new(None).await {
+                Ok(mut em) => {
+                    let handle: u64 = 0;
+                    let _ = em.create(handle).await;
+                    for key in pressed_keys {
+                        let event = Event::Keyboard(KeyboardEvent::Key {
+                            time: 0,
+                            key: key as u32,
+                            state: 0, // up
+                        });
+                        if let Err(e) = em.consume(event, handle).await {
+                            log::warn!("failed to emulate key-up for {key:?}: {e}");
+                        }
+                    }
+                    let _ = em.destroy(handle).await;
+                }
+                Err(e) => log::debug!("no input emulation backend available: {e}"),
+            }
+        }
+
         capture.release().await
     }
 }
@@ -386,6 +431,45 @@ fn to_capture_pos(pos: lan_mouse_ipc::Position) -> input_capture::Position {
         lan_mouse_ipc::Position::Bottom => input_capture::Position::Bottom,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use input_emulation::InputEmulation;
+
+    #[tokio::test]
+    async fn emulate_modifier_keyups_ok() {
+        // This test checks that we can create an InputEmulation and send
+        // key-up events for common modifiers. It is best-effort and simply
+        // asserts that no errors are returned when using the default
+        // emulation selection (which can be the dummy backend in CI).
+        let mut em = match InputEmulation::new(None).await {
+            Ok(e) => e,
+            Err(_) => return, // no emulation backend available, test is NOP
+        };
+        let _ = em.create(0).await;
+        let mods = [
+            scancode::Linux::KeyLeftCtrl,
+            scancode::Linux::KeyRightCtrl,
+            scancode::Linux::KeyLeftShift,
+            scancode::Linux::KeyRightShift,
+            scancode::Linux::KeyLeftAlt,
+            scancode::Linux::KeyRightalt,
+            scancode::Linux::KeyLeftMeta,
+            scancode::Linux::KeyRightmeta,
+        ];
+        for &m in mods.iter() {
+            let event = Event::Keyboard(KeyboardEvent::Key {
+                time: 0,
+                key: m as u32,
+                state: 0,
+            });
+            em.consume(event, 0).await.expect("consume failed");
+        }
+        em.destroy(0).await;
+    }
+}
+
 
 fn to_proto_pos(pos: input_capture::Position) -> lan_mouse_proto::Position {
     match pos {
