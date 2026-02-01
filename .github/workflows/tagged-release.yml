@@ -16,12 +16,14 @@ jobs:
         sudo apt-get install libx11-dev libxtst-dev
         sudo apt-get install libadwaita-1-dev libgtk-4-dev
     - name: Release Build
-      run: cargo build --release
+      run: |
+        cargo build --release
+        cp target/release/lan-mouse lan-mouse-linux-amd64
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: lan-mouse-linux
-        path: target/release/lan-mouse
+        path: lan-mouse-linux-amd64
 
   windows-release-build:
     runs-on: windows-latest
@@ -100,7 +102,7 @@ jobs:
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: lan-mouse-macos-intel.zip
+        name: lan-mouse-macos-intel
         path: target/release/bundle/osx/lan-mouse-macos-intel.zip
 
   macos-aarch64-release-build:
@@ -128,7 +130,7 @@ jobs:
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: lan-mouse-macos-aarch64.zip
+        name: lan-mouse-macos-aarch64
         path: target/release/bundle/osx/lan-mouse-macos-aarch64.zip
 
   tagged-release:
@@ -144,7 +146,7 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         files: |
-          lan-mouse-linux/lan-mouse
+          lan-mouse-linux/lan-mouse-linux-amd64
           lan-mouse-macos-intel/lan-mouse-macos-intel.zip
           lan-mouse-macos-aarch64/lan-mouse-macos-aarch64.zip
           lan-mouse-windows/lan-mouse-windows.zip
