@@ -175,6 +175,8 @@ impl InputEmulation {
         for handle in self.handles.iter().cloned().collect::<Vec<_>>() {
             self.destroy(handle).await
         }
+        // Give the compositor time to process key-up events before tearing down the backend
+        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
         self.emulation.terminate().await
     }
 
