@@ -262,10 +262,12 @@ impl CaptureTask {
                     None => return Ok(()),
                 },
                 (handle, event) = self.conn.recv() => {
+                    log::info!("received from client {handle}: {:?}", event);
                     if let Some(active) = self.active_client {
                         if handle != active {
                             // we only care about events coming from the client we are currently connected to
                             // only `Ack` and `Leave` are relevant
+                            log::info!("ignoring event from inactive client {handle} (active: {active})");
                             continue
                         }
                     }

@@ -1,3 +1,22 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # Lan Mouse Agent Instructions
 
 ## Repository purpose
@@ -24,6 +43,40 @@
 - `shadow-rs` builds metadata via `build.rs`, so metadata changes should update that script as well.
 
 ## Architecture pointers
+
+### Process Model & IPC
+
+Lan-mouse uses a **daemon + frontend** architecture:
+
+- **Daemon** (`lan-mouse daemon` or `Service` in `src/service.rs`): handles capture, emulation, network, crypto, client management
+- **Frontend** (GTK or CLI): stateless UI that connects via IPC, sends `FrontendRequest`, receives `FrontendEvent`
+
+IPC transport:
+
+- **Linux**: Unix socket at `$XDG_RUNTIME_DIR/lan-mouse-socket.sock`
+- **macOS**: Unix socket at `~/Library/Caches/lan-mouse-socket.sock`
+- **Windows**: TCP `127.0.0.1:5252` (planned: named pipe)
+
+On normal GTK launch, `main.rs` spawns daemon as child process, then runs GTK which connects via IPC. When `lan-mouse daemon` runs explicitly, multiple frontends can connect (headless/systemd use).
+
+### Crate Responsibilities
+
+| Crate             | Purpose                                                                 |
+| ----------------- | ----------------------------------------------------------------------- |
+| `lan-mouse`       | Main binary, daemon service, network protocol                           |
+| `lan-mouse-gtk`   | GTK4/libadwaita frontend                                                |
+| `lan-mouse-cli`   | Command-line frontend for scripting                                     |
+| `lan-mouse-ipc`   | IPC protocol types (`FrontendRequest`/`FrontendEvent`), socket handling |
+| `lan-mouse-proto` | Network protocol types (peer-to-peer)                                   |
+| `input-capture`   | OS-specific input capture backends                                      |
+| `input-emulation` | OS-specific input injection backends                                    |
+| `input-event`     | Shared event types, scancode mappings                                   |
+
+### Windows-Specific Considerations
+
+The current Windows backend uses `SendInput` which fails for login screen, UAC, and elevated windows. See [docs/windows-elevated-plan.md](docs/windows-elevated-plan.md) for the planned solution: run the daemon as a Windows service (same binary, detected at startup via `windows-service` crate).
+
+### Additional Architecture Notes
 
 - Input capture is an event stream: `InputCapture` translates OS-level events into `CaptureEvent`s and shares them via `lan-mouse-ipc`. See [`input-capture/src/lib.rs`](input-capture/src/lib.rs) for the backend selection ordering and the `position_map` queuing logic.
 - Input emulation applies inbound events to the local system while guarding against stuck keys; the `Emulation` trait lives in [`input-emulation/src/lib.rs`](input-emulation/src/lib.rs) and keeps a `pressed_keys` map per handle.
@@ -82,4 +135,3 @@ Consult those files when you land inside the corresponding code—only the relev
 - Implement just the requested change, keeping it minimal and aligned with the Rust patterns described earlier; flag follow-up work instead of absorbing it casually.
 - Add or update tests that cover the new behavior (unit, integration, or both depending on scope) and `cargo test` the affected crates before claiming completion. If an OS-specific backend cannot be exercised locally, note the manual steps that need verification.
 - Run formatting/linting (`cargo fmt`, `cargo clippy --workspace`) when touching multiple files, then document any non-obvious decisions or remaining questions for reviewers.
-

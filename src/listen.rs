@@ -111,6 +111,7 @@ impl LanMouseListener {
 
         let listen_addr = SocketAddr::new("0.0.0.0".parse().expect("invalid ip"), port);
         let mut listener = listen(listen_addr, cfg.clone()).await?;
+        log::info!("Listening on {}", listen_addr);
 
         let conns: Rc<AsyncMutex<Vec<(SocketAddr, ArcConn)>>> =
             Rc::new(AsyncMutex::new(Vec::new()));
