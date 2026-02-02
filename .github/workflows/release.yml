@@ -164,13 +164,27 @@ jobs:
     steps:
     - name: Download build artifacts
       uses: actions/download-artifact@v4
-    - name: Create Release
+    - name: Create Pre-Release
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
-        prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        title: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Development Build' }}
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: |
+          lan-mouse-linux-x86-64/lan-mouse-linux-x86-64
+          lan-mouse-linux-arm/lan-mouse-linux-arm
+          lan-mouse-macos-intel/lan-mouse-macos-intel.zip
+          lan-mouse-macos-arm/lan-mouse-macos-arm.zip
+          lan-mouse-windows-x86-64/lan-mouse-windows-x86-64.zip
+          lan-mouse-windows-arm/lan-mouse-windows-arm.zip
+    - name: Create Tagged Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
         files: |
           lan-mouse-linux-x86-64/lan-mouse-linux-x86-64
           lan-mouse-linux-arm/lan-mouse-linux-arm
