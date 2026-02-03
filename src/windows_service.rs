@@ -1,4 +1,5 @@
 use std::ffi::OsString;
+use std::process::Command;
 use windows_service::{
     define_windows_service,
     service::{
@@ -18,6 +19,7 @@ use windows::Win32::System::Registry::{
     RegCreateKeyExW, RegSetValueExW, RegCloseKey, HKEY_LOCAL_MACHINE, REG_SZ, HKEY,
     REG_OPTION_NON_VOLATILE, KEY_WRITE, REG_DWORD,
 };
+use windows::Win32::System::Services::{ChangeServiceConfig2W, SERVICE_CONFIG_DESCRIPTION, SERVICE_DESCRIPTIONW};
 use windows::Win32::System::RemoteDesktop::{WTSGetActiveConsoleSessionId, ProcessIdToSessionId};
 use windows::Win32::System::Threading::{
     CreateProcessAsUserW, PROCESS_INFORMATION, STARTUPINFOW, CREATE_UNICODE_ENVIRONMENT,
@@ -36,6 +38,7 @@ use windows::Win32::Security::{
 };
 use windows::Win32::Foundation::{CloseHandle, HANDLE, WAIT_OBJECT_0};
 use windows::core::{HSTRING, PWSTR, w};
+use lan_mouse_ipc::DEFAULT_PORT;
 use std::os::windows::ffi::OsStrExt;
 use std::ptr;
 
@@ -106,6 +109,53 @@ pub fn install_service() -> Result<(), String> {
              }
         }
 
+        // Copy certificate (lan-mouse.pem) from user's LOCALAPPDATA if present
+        let dst_cert = program_data.join("lan-mouse.pem");
+        if !dst_cert.exists() {
+            if let Ok(app_data) = std::env::var("LOCALAPPDATA") {
+                let src_cert = std::path::Path::new(&app_data).join("lan-mouse").join("lan-mouse.pem");
+                if src_cert.exists() {
+                    match std::fs::copy(&src_cert, &dst_cert) {
+                        Ok(_) => info!("Copied user certificate to ProgramData: {:?}", dst_cert),
+                        Err(e) => log::warn!("Failed to copy certificate to ProgramData: {}", e),
+                    }
+                }
+            }
+        }
+
+        // Create Windows Firewall rule to allow incoming connections on DEFAULT_PORT
+        // Use netsh advfirewall to add a rule for domain and private profiles (not Public)
+        let port = DEFAULT_PORT.to_string();
+        let rule_name = format!("Lan Mouse ({})", port);
+        let netsh_args: Vec<String> = vec![
+            "advfirewall".to_string(),
+            "firewall".to_string(),
+            "add".to_string(),
+            "rule".to_string(),
+            format!("name={}", rule_name),
+            "dir=in".to_string(),
+            "action=allow".to_string(),
+            "protocol=TCP".to_string(),
+            format!("localport={}", port),
+            "profile=domain,private".to_string(),
+            "enable=yes".to_string(),
+        ];
+
+        // Run netsh; don't fail install if firewall command fails, just log
+        match Command::new("netsh").args(&netsh_args).output() {
+            Ok(output) => {
+                if output.status.success() {
+                    info!("Firewall rule added: {}", rule_name);
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    log::warn!("Failed to add firewall rule (netsh returned non-zero): {}", stderr);
+                }
+            }
+            Err(e) => {
+                log::warn!("Failed to execute netsh to add firewall rule: {}", e);
+            }
+        }
+
         // Register event source
         let sub_key = HSTRING::from("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\lan-mouse");
         let mut h_key = HKEY::default();
@@ -138,6 +188,19 @@ pub fn install_service() -> Result<(), String> {
             );
             let _ = RegCloseKey(h_key);
         }
+
+        // Try to set service description using ChangeServiceConfig2W (preferred)
+        let description = "Lan Mouse - share mouse and keyboard across local networks";
+        let mut desc_wide: Vec<u16> = description.encode_utf16().chain(std::iter::once(0)).collect();
+        let mut svc_desc = SERVICE_DESCRIPTIONW {
+            lpDescription: PWSTR(desc_wide.as_mut_ptr()),
+        };
+
+        let desc_ptr = &mut svc_desc as *mut _ as *const std::ffi::c_void;
+        if let Err(e) = ChangeServiceConfig2W(service, SERVICE_CONFIG_DESCRIPTION, Some(desc_ptr)) {
+            return Err(format!("ChangeServiceConfig2W failed: {}", e));
+        }
+        info!("Service description set via ChangeServiceConfig2W");
 
         if let Err(e) = StartServiceW(service, None) {
             log::warn!("Failed to start service after installation: {}", e);
