@@ -1,5 +1,6 @@
 # Lan Mouse
-Lan Mouse is a *cross-platform* mouse and keyboard sharing software similar to universal-control on Apple devices.
+
+Lan Mouse is a _cross-platform_ mouse and keyboard sharing software similar to universal-control on Apple devices.
 It allows for using multiple PCs via a single set of mouse and keyboard.
 This is also known as a Software KVM switch.
 
@@ -8,7 +9,7 @@ and other open source tools like [Deskflow](https://github.com/deskflow/deskflow
 
 Focus lies on performance, ease of use and a maintainable implementation that can be expanded to support additional backends for e.g. Android, iOS, ... in the future.
 
-***blazingly fast™*** because it's written in rust.
+**_blazingly fast™_** because it's written in rust.
 
 - _Now with a gtk frontend_
 
@@ -18,7 +19,6 @@ Focus lies on performance, ease of use and a maintainable implementation that ca
     <img alt="Screenshot of Lan-Mouse" srcset="/screenshots/dark.png">
 </picture>
 
-
 ## Encryption
 
 Lan Mouse encrypts all network traffic using the DTLS implementation provided by [WebRTC.rs](https://github.com/webrtc-rs/webrtc).
@@ -27,26 +27,24 @@ There are currently no mitigations in place for timing side-channel attacks.
 ## OS Support
 
 Most current desktop environments and operating systems are fully supported, this includes
+
 - GNOME >= 45
 - KDE Plasma >= 6.1
 - Most wlroots based compositors, including Sway (>= 1.8), Hyprland and Wayfire
 - Windows
 - MacOS
 
-
 ### Caveats / Known Issues
 
 > [!Important]
+>
 > - **X11** currently only has support for input emulation, i.e. can only be used on the receiving end.
->
 > - **Sway / wlroots**: Wlroots based compositors without libei support on the receiving end currently do not handle modifier events on the client side.
-> This results in CTRL / SHIFT / ALT / SUPER keys not working with a sending device that is NOT using the `layer-shell` backend
->
+>   This results in CTRL / SHIFT / ALT / SUPER keys not working with a sending device that is NOT using the `layer-shell` backend
 > - **Wayfire**: If you are using [Wayfire](https://github.com/WayfireWM/wayfire), make sure to use a recent version (must be newer than October 23rd) and **add `shortcuts-inhibit` to the list of plugins in your wayfire config!**
-> Otherwise input capture will not work.
->
+>   Otherwise input capture will not work.
 > - **Windows**: The mouse cursor will be invisible when sending input to a Windows system if
-> there is no real mouse connected to the machine.
+>   there is no real mouse connected to the machine.
 
 For more detailed information about os support see [Detailed OS Support](#detailed-os-support)
 
@@ -71,8 +69,8 @@ The prerelease version (following `main`) is available on the AUR:
 ```sh
 paru -S lan-mouse-git
 ```
-</details>
 
+</details>
 
 <details>
     <summary>Nix (OS)</summary>
@@ -85,12 +83,12 @@ paru -S lan-mouse-git
     <summary>Fedora</summary>
 You can install Lan Mouse from the [Terra Repository](https://terra.fyralabs.com).
 
-
 After enabling Terra:
 
 ```sh
 dnf install lan-mouse
 ```
+
 </details>
 
 <details>
@@ -104,7 +102,6 @@ dnf install lan-mouse
 
 </details>
 
-
 <details>
     <summary>Manual Installation</summary>
 
@@ -116,6 +113,7 @@ For Windows, the depenedencies are included in the .zip file, for other operatin
 Alternatively, the `lan-mouse` binary can be compiled from source (see below).
 
 ### Installing desktop file, app icon and firewall rules (optional)
+
 ```sh
 # install lan-mouse (replace path/to/ with the correct path)
 sudo cp path/to/lan-mouse /usr/local/bin/
@@ -140,6 +138,7 @@ Instead of downloading from the releases, the `lan-mouse` binary
 can be easily compiled via cargo or nix:
 
 ### Compiling and installing manually:
+
 ```sh
 # compile in release mode
 cargo build --release
@@ -149,17 +148,21 @@ sudo cp target/release/lan-mouse /usr/local/bin/
 ```
 
 ### Compiling and installing via cargo:
+
 ```sh
 # will end up in ~/.cargo/bin
 cargo install lan-mouse
 ```
 
 ### Compiling and installing via nix:
+
 ```sh
 # you can find the executable in result/bin/lan-mouse
 nix-build
 ```
+
 ### Conditional compilation
+
 Support for other platforms is omitted automatically based on the active
 rust toolchain.
 
@@ -169,16 +172,19 @@ Additionally, available backends and frontends can be configured manually via
 E.g. if only support for sway is needed, the following command produces
 an executable with support for only the `layer-shell` capture backend
 and `wlroots` emulation backend:
+
 ```sh
 cargo build --no-default-features --features layer_shell_capture,wlroots_emulation
 ```
+
 For a detailed list of available features, checkout the [Cargo.toml](./Cargo.toml)
+
 </details>
 
+## Development/Contributing
 
+### Installing Dependencies for Development / Compiling from Source
 
-
-## Installing Dependencies for Development / Compiling from Source
 <details>
     <summary>MacOS</summary>
 
@@ -193,6 +199,7 @@ cargo bundle
 # Copy all dynamic libraries into the bundle, and update the bundle to find them there
 scripts/copy-macos-dylib.sh
 ```
+
 </details>
 
 <details>
@@ -201,6 +208,7 @@ scripts/copy-macos-dylib.sh
 ```sh
 sudo apt install libadwaita-1-dev libgtk-4-dev libx11-dev libxtst-dev
 ```
+
 </details>
 
 <details>
@@ -209,6 +217,7 @@ sudo apt install libadwaita-1-dev libgtk-4-dev libx11-dev libxtst-dev
 ```sh
 sudo pacman -S libadwaita gtk libx11 libxtst
 ```
+
 </details>
 
 <details>
@@ -217,6 +226,7 @@ sudo pacman -S libadwaita gtk libx11 libxtst
 ```sh
 sudo dnf install libadwaita-devel libXtst-devel libX11-devel
 ```
+
 </details>
 <details>
     <summary>Nix</summary>
@@ -224,6 +234,7 @@ sudo dnf install libadwaita-devel libXtst-devel libX11-devel
 ```sh
 nix-shell .
 ```
+
 </details>
 <details>
     <summary>Nix (flake)</summary>
@@ -231,6 +242,7 @@ nix-shell .
 ```sh
 nix develop
 ```
+
 </details>
 
 <details>
@@ -240,11 +252,12 @@ nix develop
 
 - Then follow the instructions at [gtk-rs.org](https://gtk-rs.org/gtk4-rs/stable/latest/book/installation_windows.html)
 
-*TLDR:*
+_TLDR:_
 
 Build gtk from source
 
 - The following commands should be run in an **admin power shell** instance:
+
 ```sh
 # install chocolatey
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
@@ -262,6 +275,7 @@ python -m pipx ensurepath
 ```
 
 - Relaunch your powershell instance so the changes in the environment are reflected.
+
 ```sh
 pipx install gvsbuild
 
@@ -270,13 +284,33 @@ gvsbuild build gtk4 libadwaita librsvg adwaita-icon-theme
 ```
 
 - **Make sure to add the directory** `C:\gtk-build\gtk\x64\release\bin`
-[**to the `PATH` environment variable**]((https://learn.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ee537574(v=office.14))). Otherwise the project will fail to build.
+  [**to the `PATH` environment variable**](<(https://learn.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ee537574(v=office.14))>). Otherwise the project will fail to build.
 
 To avoid building GTK from source, it is possible to disable
 the gtk frontend (see conditional compilation).
+
 </details>
 
+### Git pre-commit hook
+
+This repository includes a local git hooks directory `.githooks/` with a `pre-commit` script that enforces formatting, lints, and tests before allowing a commit. To enable the hook locally:
+
+1. Make the hook executable:
+
+```sh
+chmod +x .githooks/pre-commit
+```
+
+2. Point git to the hooks directory (one-time per clone):
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The `pre-commit` script runs `cargo fmt --all -- --check`, `cargo clippy --all-features --all-targets -- -D warnings`, and `cargo test --workspace --all-features`.
+
 ## Usage
+
 <details>
     <summary>Gtk Frontend</summary>
 
@@ -285,14 +319,15 @@ By default the gtk frontend will open when running `lan-mouse`.
 To connect a device you want to control, simply click the `Add` button and enter the hostname
 of the device.
 
-On the *remote* device, authorize your *local* device for incoming traffic using the `Authorize` button
+On the _remote_ device, authorize your _local_ device for incoming traffic using the `Authorize` button
 under the "Incoming Connections" section.
-The fingerprint for authorization can be found under the general section of your *local* device.
+The fingerprint for authorization can be found under the general section of your _local_ device.
 It is of the form "aa:bb:cc:..."
 
 Authorized devices can be persisted using the configuration file (see [Configuration](#configuration)).
 
 If the device still can not be entered, make sure you have UDP port `4242` (or the one selected) opened up in your firewall.
+
 </details>
 
 <details>
@@ -300,13 +335,17 @@ If the device still can not be entered, make sure you have UDP port `4242` (or t
 
 The cli interface can be accessed by passing `cli` as a commandline argument.
 Use
+
 ```sh
 lan-mouse cli help
 ```
- to list the available commands and
+
+to list the available commands and
+
 ```sh
 lan-mouse cli <cmd> help
 ```
+
 for information on how to use a specific command.
 
 </details>
@@ -332,15 +371,18 @@ cp service/lan-mouse.service ~/.config/systemd/user
 systemctl --user daemon-reload
 systemctl --user enable --now lan-mouse.service
 ```
+
 </details>
 
 ## Configuration
+
 To automatically load clients on startup, the file `$XDG_CONFIG_HOME/lan-mouse/config.toml` is parsed.
 `$XDG_CONFIG_HOME` defaults to `~/.config/`.
 
 To create this file you can copy the following example config:
 
 ### Example config
+
 > [!TIP]
 > key symbols in the release bind are named according
 > to their names in [input-event/src/scancode.rs#L172](input-event/src/scancode.rs#L176).
@@ -386,6 +428,7 @@ port = 4242
 Where `left` can be either `left`, `right`, `top` or `bottom`.
 
 ## Roadmap
+
 - [x] Graphical frontend (gtk + libadwaita)
 - [x] respect xdg-config-home for config file location.
 - [x] IP Address switching
@@ -401,11 +444,10 @@ Where `left` can be either `left`, `right`, `top` or `bottom`.
 - [ ] Bandwidth usage measurement and visualization
 - [ ] Clipboard support
 
-
 ## Detailed OS Support
 
 In order to use a device for sending events, an **input-capture** backend is required, while receiving events requires
-a supported **input-emulation** *and* **input-capture** backend.
+a supported **input-emulation** _and_ **input-capture** backend.
 
 A suitable backend is chosen automatically based on the active desktop environment / compositor.
 
@@ -413,14 +455,14 @@ The following sections detail the emulation and capture backends provided by lan
 
 ### Input Emulation Support
 
-| Desktop / Backend         | wlroots                  | libei                    | remote-desktop portal    | windows                  |   macos                                | x11                |
-|---------------------------|--------------------------|--------------------------|--------------------------|--------------------------|----------------------------------------|--------------------|
-| Wayland (wlroots)         | :heavy_check_mark:       |                          |                          |                          |                                        |                    |
-| Wayland (KDE)             |                          | :heavy_check_mark:       | :heavy_check_mark:       |                          |                                        |                    |
-| Wayland (Gnome)           |                          | :heavy_check_mark:       | :heavy_check_mark:       |                          |                                        |                    |
-| Windows                   |                          |                          |                          | :heavy_check_mark:       |                                        |                    |
-| MacOS                     |                          |                          |                          |                          |   :heavy_check_mark:                   |                    |
-| X11                       |                          |                          |                          |                          |                                        | :heavy_check_mark: |
+| Desktop / Backend | wlroots            | libei              | remote-desktop portal | windows            | macos              | x11                |
+| ----------------- | ------------------ | ------------------ | --------------------- | ------------------ | ------------------ | ------------------ |
+| Wayland (wlroots) | :heavy_check_mark: |                    |                       |                    |                    |                    |
+| Wayland (KDE)     |                    | :heavy_check_mark: | :heavy_check_mark:    |                    |                    |                    |
+| Wayland (Gnome)   |                    | :heavy_check_mark: | :heavy_check_mark:    |                    |                    |                    |
+| Windows           |                    |                    |                       | :heavy_check_mark: |                    |                    |
+| MacOS             |                    |                    |                       |                    | :heavy_check_mark: |                    |
+| X11               |                    |                    |                       |                    |                    | :heavy_check_mark: |
 
 - `wlroots`: This backend makes use of the [wlr-virtual-pointer-unstable-v1](https://wayland.app/protocols/wlr-virtual-pointer-unstable-v1) and [virtual-keyboard-unstable-v1](https://wayland.app/protocols/virtual-keyboard-unstable-v1) protocols and is supported by most wlroots based compositors.
 - `libei`: This backend uses [libei](https://gitlab.freedesktop.org/libinput/libei) and is supported by GNOME >= 45 or KDE Plasma >= 6.1.
@@ -429,18 +471,16 @@ The following sections detail the emulation and capture backends provided by lan
 - `windows`: Backend for Windows.
 - `macos`: Backend for MacOS.
 
-
-
 ### Input Capture Support
 
-| Desktop / Backend         | layer-shell              | libei                    | windows                  |   macos                                | x11 |
-|---------------------------|--------------------------|--------------------------|--------------------------|----------------------------------------|-----|
-| Wayland (wlroots)         | :heavy_check_mark:       |                          |                          |                                        |     |
-| Wayland (KDE)             | :heavy_check_mark:       | :heavy_check_mark:       |                          |                                        |     |
-| Wayland (Gnome)           |                          | :heavy_check_mark:       |                          |                                        |     |
-| Windows                   |                          |                          | :heavy_check_mark:       |                                        |     |
-| MacOS                     |                          |                          |                          |   :heavy_check_mark:                   |     |
-| X11                       |                          |                          |                          |                                        | WIP |
+| Desktop / Backend | layer-shell        | libei              | windows            | macos              | x11 |
+| ----------------- | ------------------ | ------------------ | ------------------ | ------------------ | --- |
+| Wayland (wlroots) | :heavy_check_mark: |                    |                    |                    |     |
+| Wayland (KDE)     | :heavy_check_mark: | :heavy_check_mark: |                    |                    |     |
+| Wayland (Gnome)   |                    | :heavy_check_mark: |                    |                    |     |
+| Windows           |                    |                    | :heavy_check_mark: |                    |     |
+| MacOS             |                    |                    |                    | :heavy_check_mark: |     |
+| X11               |                    |                    |                    |                    | WIP |
 
 - `layer-shell`: This backend creates a single pixel wide window on the edges of Displays to capture the cursor using the [layer-shell protocol](https://wayland.app/protocols/wlr-layer-shell-unstable-v1).
 - `libei`: This backend uses [libei](https://gitlab.freedesktop.org/libinput/libei) and is supported by GNOME >= 45 or KDE Plasma >= 6.1.
