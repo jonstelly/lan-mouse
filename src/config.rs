@@ -122,15 +122,15 @@ pub enum Command {
     Cli(CliArgs),
     /// run in daemon mode
     Daemon,
-    /// Install windows service
+    /// Install as system service (Windows: SCM service, Linux: systemd, macOS: launchd)
     #[cfg(windows)]
-    InstallService,
-    /// Uninstall windows service
+    Install,
+    /// Uninstall system service
     #[cfg(windows)]
-    UninstallService,
-    /// Query windows service status
+    Uninstall,
+    /// Query service status
     #[cfg(windows)]
-    ServiceStatus,
+    Status,
     /// Run as watchdog service (internal - spawns session daemons)
     #[cfg(windows)]
     Watchdog,

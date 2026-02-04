@@ -10,6 +10,8 @@ pub mod emulation_test;
 mod listen;
 pub mod service;
 #[cfg(windows)]
+pub mod windows;
+#[cfg(windows)]
 pub mod windows_service;
 
 #[cfg(windows)]

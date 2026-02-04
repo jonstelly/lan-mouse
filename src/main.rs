@@ -109,21 +109,21 @@ fn run() -> Result<(), LanMouseError> {
                 }
             }
             #[cfg(windows)]
-            Command::InstallService => {
-                lan_mouse::windows_service::install_service().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            Command::Install => {
+                lan_mouse::windows::install().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
             }
             #[cfg(windows)]
-            Command::UninstallService => {
-                lan_mouse::windows_service::uninstall_service().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            Command::Uninstall => {
+                lan_mouse::windows::uninstall().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
             }
             #[cfg(windows)]
-            Command::ServiceStatus => {
+            Command::Status => {
                 lan_mouse::windows_service::service_status().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
             }
             #[cfg(windows)]
             Command::Watchdog => {
                 // This should only be called by SCM, not directly by user
-                log::error!("Watchdog mode should not be invoked directly - use 'lan-mouse install-service'");
+                log::error!("Watchdog mode should not be invoked directly - use 'lan-mouse install'");
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, "Watchdog mode is internal").into());
             }
         },

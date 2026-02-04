@@ -12,7 +12,7 @@
 .PARAMETER Direct
     Run ./target/svc/lan-mouse.exe directly (not as a service)
 .PARAMETER Install
-    If specified with -Service, registers the service via 'lan-mouse install-service' before starting
+    If specified with -Service, registers the service via 'lan-mouse install' before starting
 .PARAMETER Clean
     Truncate all log files in C:\ProgramData\lan-mouse\ before starting
 .EXAMPLE
@@ -110,7 +110,7 @@ try {
         if ($Install) {
             Write-Host "`nInstalling service..." -ForegroundColor Cyan
             $ServiceExe = Join-Path $SvcDir "lan-mouse.exe"
-            & $ServiceExe install-service
+            & $ServiceExe install
             if ($LASTEXITCODE -ne 0) {
                 throw "Service installation failed with exit code $LASTEXITCODE"
             }
