@@ -1,4 +1,5 @@
 name: "Release"
+run-name: "Release - ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || github.event.inputs.name || github.ref_name }}"
 
 on:
   push:
@@ -6,6 +7,11 @@ on:
     tags:
       - v**
   workflow_dispatch:
+    inputs:
+      name:
+        description: 'Development release name'
+        required: false
+        default: ''
 
 env:
   CARGO_TERM_COLOR: always
@@ -166,25 +172,26 @@ jobs:
       uses: actions/download-artifact@v4
     - name: Create Pre-Release
       if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-      uses: "marvinpinto/action-automatic-releases@latest"
+      uses: softprops/action-gh-release@v2
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: latest
+        name: ${{ github.event.inputs.name || github.ref_name }}
         prerelease: true
-        title: "Development Build"
+        generate_release_notes: true
         files: |
           lan-mouse-linux-x86-64/lan-mouse-linux-x86-64
           lan-mouse-linux-arm/lan-mouse-linux-arm
           lan-mouse-macos-intel/lan-mouse-macos-intel.zip
           lan-mouse-macos-arm/lan-mouse-macos-arm.zip
           lan-mouse-windows-x86-64/lan-mouse-windows-x86-64.zip
-          lan-mouse-windows-arm/lan-mouse-windows-arm.zip
     - name: Create Tagged Release
       if: startsWith(github.ref, 'refs/tags/')
-      uses: "marvinpinto/action-automatic-releases@latest"
+      uses: softprops/action-gh-release@v2
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ github.ref_name }}
+        generate_release_notes: true
         files: |
           lan-mouse-linux-x86-64/lan-mouse-linux-x86-64
           lan-mouse-linux-arm/lan-mouse-linux-arm
