@@ -131,9 +131,10 @@ pub enum Command {
     /// Query service status
     #[cfg(windows)]
     Status,
-    /// Run as watchdog service (internal - spawns session daemons)
+    /// Run as Windows service (internal - spawns session daemons)
     #[cfg(windows)]
-    Watchdog,
+    #[command(hide = true)]
+    WinSvc,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, ValueEnum)]
@@ -326,6 +327,11 @@ impl Config {
     }
 
     fn from_args(args: Args) -> Result<Self, ConfigError> {
+        #[cfg(windows)]
+        if matches!(args.command, Some(Command::WinSvc)) {
+            crate::set_is_service(true);
+        }
+
         // --config <file> overrules default location
         let config_path = args
             .config
