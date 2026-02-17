@@ -453,8 +453,10 @@ fn create_event_tap<'a>(
                 // Returning Drop should stop the event from being processed
                 // but core fundation still returns the event
                 cg_ev.set_type(CGEventType::Null);
+                CallbackResult::Drop
+            } else {
+                CallbackResult::Keep
             }
-            CallbackResult::Replace(cg_ev.to_owned())
         };
 
     let tap = CGEventTap::new(
@@ -644,6 +646,7 @@ unsafe fn configure_cf_settings() -> Result<(), MacosCaptureCreationError> {
     let event_source = CGEventSource::new(CGEventSourceStateID::CombinedSessionState)
         .map_err(|_| MacosCaptureCreationError::EventSourceCreation)?;
     CGEventSourceSetLocalEventsSuppressionInterval(event_source, 0.05);
+    // FIXME Memory Leak
 
     // This is a private settings that allows the cursor to be hidden while in the background.
     // It is used by Barrier and other apps.

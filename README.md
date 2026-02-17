@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/feschber/lan-mouse/actions/workflows/rust.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/rust.yml) [![Cachix](https://github.com/feschber/lan-mouse/actions/workflows/cachix.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/cachix.yml) [![Pre-release](https://github.com/feschber/lan-mouse/actions/workflows/pre-release.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/pre-release.yml) [![Tagged release](https://github.com/feschber/lan-mouse/actions/workflows/tagged-release.yml/badge.svg)](https://github.com/feschber/lan-mouse/actions/workflows/tagged-release.yml)
 
-[![crates.io](https://img.shields.io/crates/v/lan-mouse.svg)](https://crates.io/crates/lan-mouse) [![license](https://img.shields.io/crates/l/lan-mouse.svg)](https://github.com/feschber/lan-mouse/blob/main/Cargo.toml)
+[![crates.io](https://img.shields.io/crates/v/lan-mouse.svg)](https://crates.io/crates/lan-mouse)  [![license](https://img.shields.io/crates/l/lan-mouse.svg)](https://github.com/feschber/lan-mouse/blob/main/Cargo.toml)
 
-Lan Mouse is a _cross-platform_ mouse and keyboard sharing software similar to universal-control on Apple devices.
+Lan Mouse is a *cross-platform* mouse and keyboard sharing software similar to universal-control on Apple devices.
 It allows for using multiple PCs via a single set of mouse and keyboard.
 This is also known as a Software KVM switch.
 
@@ -364,6 +364,9 @@ To do so, use the `daemon` subcommand:
 ```sh
 lan-mouse daemon
 ```
+</details>
+
+## Systemd Service
 
 In order to start lan-mouse with a graphical session automatically,
 the [systemd-service](service/lan-mouse.service) can be used:
@@ -375,8 +378,9 @@ cp service/lan-mouse.service ~/.config/systemd/user
 systemctl --user daemon-reload
 systemctl --user enable --now lan-mouse.service
 ```
+> [!Important]
+> Make sure to point `ExecStart=/usr/bin/lan-mouse daemon` to the actual `lan-mouse` binary (in case it is not under `/usr/bin`, e.g. when installed manually.
 
-</details>
 
 ## Configuration
 
